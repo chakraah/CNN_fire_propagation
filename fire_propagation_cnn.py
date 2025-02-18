@@ -8,9 +8,9 @@ from torch.utils.data import Dataset
 # CNN Model for Predicting Fire Spread
     
 class FirePropagationCNN(nn.Module):
-    def __init__(self):
+    def __init__(self, num_classes=2):
         super(FirePropagationCNN, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3, stride=1, padding=1)
+        self.conv1 = nn.Conv2d(in_channels=2, out_channels=32, kernel_size=3, stride=1, padding=1)
         self.bn1 = nn.BatchNorm2d(32)
         self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=1)
         self.bn2 = nn.BatchNorm2d(64)
