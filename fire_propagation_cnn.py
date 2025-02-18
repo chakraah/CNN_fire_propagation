@@ -47,10 +47,10 @@ class FirePropagationCNN(nn.Module):
         x = torch.relu(self.bn3(self.conv3(x)))
         x = torch.relu(self.bn4(self.conv4(x)))
         x = torch.relu(self.bn5(self.conv5(x)))
-        x = torch.relu(self.bn6(self.conv5(x)))
-        x = torch.relu(self.bn7(self.conv5(x)))
-        x = torch.relu(self.bn8(self.conv5(x)))
-        x = torch.relu(self.bn9(self.conv5(x)))
+        x = torch.relu(self.bn6(self.conv6(x)))
+        x = torch.relu(self.bn7(self.conv7(x)))
+        x = torch.relu(self.bn8(self.conv8(x)))
+        x = torch.relu(self.bn9(self.conv9(x)))
         x = self.sigmoid(self.conv10(x))
         return x
 
