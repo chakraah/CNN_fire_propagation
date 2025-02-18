@@ -20,7 +20,7 @@ class FirePropagationCNN(nn.Module):
         self.bn3 = nn.BatchNorm2d(64)
         
         self.conv4 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
-        self.bn4 = nn.BatchNorm2d(64)
+        self.bn4 = nn.BatchNorm2d(128)
         
         self.conv5 = nn.Conv2d(128, 256, kernel_size=3, padding=1)
         self.bn5 = nn.BatchNorm2d(256)
