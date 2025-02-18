@@ -10,22 +10,34 @@ from torch.utils.data import Dataset
 class FirePropagationCNN(nn.Module):
     def __init__(self):
         super(FirePropagationCNN, self).__init__()
-        self.conv1 = nn.Conv2d(2, 32, kernel_size=3, padding=1)
-        self.bn1 = nn.BatchNorm2d(32)
+        self.conv1 = nn.Conv2d(2, 16, kernel_size=3, padding=1)
+        self.bn1 = nn.BatchNorm2d(16)
         
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
-        self.bn2 = nn.BatchNorm2d(64)
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, padding=1)
+        self.bn2 = nn.BatchNorm2d(32)
         
-        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
-        self.bn3 = nn.BatchNorm2d(128)
+        self.conv3 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
+        self.bn3 = nn.BatchNorm2d(64)
         
-        self.conv4 = nn.Conv2d(128, 64, kernel_size=3, padding=1)
+        self.conv4 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
         self.bn4 = nn.BatchNorm2d(64)
         
-        self.conv5 = nn.Conv2d(64, 32, kernel_size=3, padding=1)
-        self.bn5 = nn.BatchNorm2d(32)
+        self.conv5 = nn.Conv2d(128, 256, kernel_size=3, padding=1)
+        self.bn5 = nn.BatchNorm2d(256)
+
+        self.conv6 = nn.Conv2d(256, 128, kernel_size=3, padding=1)
+        self.bn6 = nn.BatchNorm2d(128)
+
+        self.conv7 = nn.Conv2d(128, 64, kernel_size=3, padding=1)
+        self.bn7 = nn.BatchNorm2d(64)
+
+        self.conv8 = nn.Conv2d(64, 32, kernel_size=3, padding=1)
+        self.bn8 = nn.BatchNorm2d(32)
+
+        self.conv9 = nn.Conv2d(32, 16, kernel_size=3, padding=1)
+        self.bn9 = nn.BatchNorm2d(16)
         
-        self.conv6 = nn.Conv2d(32, 2, kernel_size=3, padding=1)
+        self.conv10 = nn.Conv2d(16, 2, kernel_size=3, padding=1)
         
         self.sigmoid = nn.Sigmoid()
         
@@ -35,7 +47,11 @@ class FirePropagationCNN(nn.Module):
         x = torch.relu(self.bn3(self.conv3(x)))
         x = torch.relu(self.bn4(self.conv4(x)))
         x = torch.relu(self.bn5(self.conv5(x)))
-        x = self.sigmoid(self.conv6(x))
+        x = torch.relu(self.bn6(self.conv5(x)))
+        x = torch.relu(self.bn7(self.conv5(x)))
+        x = torch.relu(self.bn8(self.conv5(x)))
+        x = torch.relu(self.bn9(self.conv5(x)))
+        x = self.sigmoid(self.conv10(x))
         return x
 
  
