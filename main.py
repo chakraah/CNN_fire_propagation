@@ -18,6 +18,7 @@ from display import display_fire_spread
 def create_fire_data(grid_size, num_samples, wind_direction):
     # Generates fire propagation data for training/testing
     ignition_point = [(np.random.randint(1,grid_size-1), np.random.randint(1,grid_size-1))]
+    ignition_point = [(100,100)]
     wildfire_simulation = WildfireSimulation(grid_size, 0.9, num_samples, 5, 0.2, ignition_point, wind_direction)
         
     fire_data, fuel_history = wildfire_simulation.run_simulation()
@@ -62,14 +63,14 @@ def process_cnn_outputs(ground_truth, model_output):
 if __name__ == "__main__":
 
     # Environment parameters
-    GRID_SIZE = 10
+    GRID_SIZE = 200
     WIND_DIRECTION = 0  # Wind blowing towards the right
     NUM_SAMPLES = 150
     NUM_SCENARIOS = 1
 
     # Define model path
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    model_path = os.path.join(script_dir, "fire_propagation_model_10.pth")
+    model_path = os.path.join(script_dir, "fire_propagation_model_200.pth")
 
     # Initialize model
     model = FirePropagationCNN()
