@@ -34,7 +34,7 @@ class FirePropagationCNN(nn.Module):
     def forward(self, x):
         x = torch.relu(self.bn1(self.conv1(x)))
         x = torch.relu(self.bn2(self.conv2(x)))
-        x = self.dropout(F.relu(self.bn3(self.conv3(x))))
+        x = self.dropout(torch.relu(self.bn3(self.conv3(x))))
         x = torch.relu(self.bn4(self.conv4(x)))
         x = torch.relu(self.bn5(self.conv5(x)))
         x = self.sigmoid(self.conv6(x))
