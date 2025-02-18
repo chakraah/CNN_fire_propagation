@@ -20,16 +20,6 @@ class FirePropagationCNN(nn.Module):
         x = torch.relu(self.bn1(self.conv1(x)))
         x = self.sigmoid(self.conv3(x))
         return x 
-    
-
-    def forward(self, x):
-        x = torch.relu(self.bn1(self.conv1(x)))
-        x = torch.relu(self.bn2(self.conv2(x)))
-        x = torch.relu(self.bn3(self.conv3(x)))
-        x = torch.relu(self.bn4(self.conv4(x)))
-        x = torch.relu(self.bn5(self.conv5(x)))
-        x = self.sigmoid(self.conv6(x))
-        return x
 
  
 # Dataset for training
