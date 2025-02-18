@@ -25,8 +25,8 @@ class FirePropagationCNN(nn.Module):
 
     def forward(self, x):
         x = torch.relu(self.bn1(self.conv1(x)))
-        x = self.pool(F.relu(self.bn2(self.conv2(x))))
-        x = self.pool(F.relu(self.bn3(self.conv3(x))))
+        x = self.pool(torch.relu(self.bn2(self.conv2(x))))
+        x = self.pool(torch.relu(self.bn3(self.conv3(x))))
         
         x = torch.flatten(x, start_dim=1)
         x = torch.relu(self.fc1(x))
