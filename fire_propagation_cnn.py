@@ -11,7 +11,7 @@ class FirePropagationCNN(nn.Module):
         super(FirePropagationCNN, self).__init__()
         self.conv1 = nn.Conv2d(2, 32, kernel_size=3, padding=1)
         self.bn1 = nn.BatchNorm2d(32)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
+        self.conv2 = nn.Conv2d(32, 2, kernel_size=3, padding=1)
         #self.bn2 = nn.BatchNorm2d(64)
         #self.conv3 = nn.Conv2d(64, 2, kernel_size=3, padding=1)
         self.sigmoid = nn.Sigmoid()
