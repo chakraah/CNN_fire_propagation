@@ -57,7 +57,7 @@ def process_cnn_outputs(ground_truth, model_output):
     #threshold_value = np.sort(fuel_map_prediction.flatten())[-active_fuel_pixels]
     # fuel_map_prediction = np.where(fuel_map_prediction >= threshold_value, fuel_map_prediction, 0)
 
-    fuel_map_prediction = np.array_like(fuel_map_label)
+    fuel_map_prediction = np.copy(fuel_map_label)
 
     burning_cells = fire_state_prediction > 0
     burned_out_cells = fuel_map_prediction < 5
