@@ -17,12 +17,20 @@ class FirePropagationCNN(nn.Module):
         self.conv2 = nn.Conv2d(in_channels=12, out_channels=24, kernel_size=5)
         self.pool2 = nn.MaxPool2d(2, 2)
 
-        # Compute the size of the flattened feature map
-        self.flattened_size = 24 * 53 * 53  # Since the last conv layer output is [batch, 24, 53, 53]
+        # Compute the flattened size dynamically
+        self._calculate_flattened_size()
         
         self.fc1 = nn.Linear(in_features=self.flattened_size, out_features=120)
         self.fc2 = nn.Linear(in_features=120, out_features=84)
         self.fc3 = nn.Linear(in_features=84, out_features=2)
+
+    def _calculate_flattened_size(self):
+        """ Helper function to determine the correct size for the first FC layer. """
+        with torch.no_grad():
+            dummy_input = torch.zeros(1, 2, 224, 224)  # Replace 224x224 with your actual input size
+            x = self.pool1(F.relu(self.conv1(dummy_input)))
+            x = self.pool2(F.relu(self.conv2(x)))
+            self.flattened_size = x.numel()
 
     def forward(self, x):
         x = self.pool1(F.relu(self.conv1(x)))
