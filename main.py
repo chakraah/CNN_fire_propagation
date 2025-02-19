@@ -30,15 +30,16 @@ def create_fire_data(grid_size, num_samples, wind_direction):
         inputs.append((fire_data[i], fuel_history[i]/255))
         targets.append((fire_data[i+1], fuel_history[i+1]/255))
 
-    return np.array(inputs), np.array(targets)
+    return np.array(inputs), np.array(targets), np(fuel_history)
 
-def process_cnn_outputs(ground_truth, model_output, fuel_map_prediction):
+def process_cnn_outputs(ground_truth, model_output, fuel_map_prediction, fuel_map_history):
     
     model_output = model_output[0].cpu().numpy()
 
     # Extract labels from the ground truth
     fire_state_label = ground_truth[0].cpu().numpy()
-    fuel_map_label = ground_truth[1].cpu().numpy() * 255  # Scale fuel map to match output range
+    #fuel_map_label = ground_truth[1].cpu().numpy() * 255  # Scale fuel map to match output range
+    fuel_map_label = fuel_map_history
     
     # Extract outputs from the model
     fire_state_prediction = model_output[0]
@@ -56,8 +57,6 @@ def process_cnn_outputs(ground_truth, model_output, fuel_map_prediction):
     #active_fuel_pixels = np.sum(fuel_map_label > 0)
     #threshold_value = np.sort(fuel_map_prediction.flatten())[-active_fuel_pixels]
     # fuel_map_prediction = np.where(fuel_map_prediction >= threshold_value, fuel_map_prediction, 0)
-
-    fuel_map_prediction = np.copy(fuel_map_label)
 
     burning_cells = fire_state_prediction > 0
     burned_out_cells = fuel_map_prediction < 5
@@ -123,13 +122,14 @@ if __name__ == "__main__":
     fire_state_history_predictions = []
     fuel_map_history_predictions = []
 
-    fire_inputs, fire_targets = create_fire_data(GRID_SIZE, NUM_SAMPLES, WIND_DIRECTION)
+    fire_inputs, fire_targets, fuel_history = create_fire_data(GRID_SIZE, NUM_SAMPLES, WIND_DIRECTION)
     dataset = FirePropagationDataset(fire_inputs, fire_targets)
 
     sample_input, sample_label = dataset[0] 
     sample_input = sample_input.unsqueeze(0).to(DEVICE)
 
-    fuel_map0 = sample_input[0,1].cpu().numpy() * 255
+    #fuel_map0 = sample_input[0,1].cpu().numpy() * 255
+    fuel_map0 = fuel_history[0]
 
     for timestep in range(NUM_SAMPLES - 1):
 
@@ -139,10 +139,10 @@ if __name__ == "__main__":
             sample_output = model(sample_input)
 
         if timestep == 0:
-            fuel_map = fuel_map0
+            fuel_map_pred = fuel_map0
 
         # Process model outputs
-        fire_state_label, fuel_map_label, fire_state_pred, fuel_map_pred = process_cnn_outputs(sample_label, sample_output, fuel_map)
+        fire_state_label, fuel_map_label, fire_state_pred, fuel_map_pred = process_cnn_outputs(sample_label, sample_output, fuel_map_pred, fuel_history[i])
 
         # Store results
         fire_state_history_labels.append(fire_state_label)
