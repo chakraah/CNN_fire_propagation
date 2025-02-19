@@ -10,37 +10,26 @@ from torch.utils.data import Dataset
 class FirePropagationCNN(nn.Module):
     def __init__(self):
         super(FirePropagationCNN, self).__init__()
-        
-        self.conv1 = nn.Conv2d(in_channels=2, out_channels=12, kernel_size=5) 
-        self.pool1 = nn.MaxPool2d(2, 2)
-        
-        self.conv2 = nn.Conv2d(in_channels=12, out_channels=24, kernel_size=5)
-        self.pool2 = nn.MaxPool2d(2, 2)
-
-        # Compute the flattened size dynamically
-        self._calculate_flattened_size()
-        
-        self.fc1 = nn.Linear(in_features=self.flattened_size, out_features=120)
-        self.fc2 = nn.Linear(in_features=120, out_features=84)
-        self.fc3 = nn.Linear(in_features=84, out_features=2)
-
-    def _calculate_flattened_size(self):
-        """ Helper function to determine the correct size for the first FC layer. """
-        with torch.no_grad():
-            dummy_input = torch.zeros(1, 2, 224, 224)  # Replace 224x224 with your actual input size
-            x = self.pool1(F.relu(self.conv1(dummy_input)))
-            x = self.pool2(F.relu(self.conv2(x)))
-            self.flattened_size = x.numel()
+        self.encoder = nn.Sequential(
+            nn.Conv2d(2, 16, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(16, 32, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(32, 64, kernel_size=3, padding=1),
+            nn.ReLU()
+        )
+        self.decoder = nn.Sequential(
+            nn.Conv2d(64, 32, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(32, 16, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(16, 2, kernel_size=3, padding=1),
+            nn.Sigmoid()
+        )
 
     def forward(self, x):
-        x = self.pool1(F.relu(self.conv1(x)))
-        x = self.pool2(F.relu(self.conv2(x)))
-
-        x = torch.flatten(x, start_dim=1)  # Flatten before FC layers
-
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)  # No activation, since softmax/cross-entropy will be used later                      
+        x = self.encoder(x)
+        x = self.decoder(x)
         return x
  
 # Dataset for training
