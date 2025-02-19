@@ -11,24 +11,28 @@ class FirePropagationCNN(nn.Module):
     def __init__(self):
         super(FirePropagationCNN, self).__init__()
         
-        self.conv1 = nn.Conv2d(in_channels = 2, out_channels = 12, kernel_size = 5) 
-        # [4,12,220,220]
-        self.pool1 = nn.MaxPool2d(2,2) #reduces the images by a factor of 2
-        # [4,12,110,110]
-        self.conv2 = nn.Conv2d(in_channels = 12, out_channels = 24, kernel_size = 5)
-        # [4,24,106,106]
-        self.pool2 = nn.MaxPool2d(2,2)
-        # [4,24,53,53] which becomes the input of the fully connected layer 
-        self.fc1 = nn.Linear(in_features = (24 * 53 * 53), out_features = 120) 
-        self.fc2 = nn.Linear(in_features = 120, out_features = 84) 
-        self.fc3 = nn.Linear(in_features = 84, out_features = 2) #final layer, output will be the number of classes 
+        self.conv1 = nn.Conv2d(in_channels=2, out_channels=12, kernel_size=5) 
+        self.pool1 = nn.MaxPool2d(2, 2)
+        
+        self.conv2 = nn.Conv2d(in_channels=12, out_channels=24, kernel_size=5)
+        self.pool2 = nn.MaxPool2d(2, 2)
+
+        # Compute the size of the flattened feature map
+        self.flattened_size = 24 * 53 * 53  # Since the last conv layer output is [batch, 24, 53, 53]
+        
+        self.fc1 = nn.Linear(in_features=self.flattened_size, out_features=120)
+        self.fc2 = nn.Linear(in_features=120, out_features=84)
+        self.fc3 = nn.Linear(in_features=84, out_features=2)
 
     def forward(self, x):
-        x = self.pool1(F.relu(self.conv1(x)))  
-        x = self.pool2(F.relu(self.conv2(x)))  
-        x = F.relu(self.fc1(x))               
-        x = F.relu(self.fc2(x))              
-        x = self.fc3(x)                       
+        x = self.pool1(F.relu(self.conv1(x)))
+        x = self.pool2(F.relu(self.conv2(x)))
+
+        x = torch.flatten(x, start_dim=1)  # Flatten before FC layers
+
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)  # No activation, since softmax/cross-entropy will be used later                      
         return x
  
 # Dataset for training
