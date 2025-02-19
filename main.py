@@ -23,14 +23,14 @@ def create_fire_data(grid_size, num_samples, wind_direction):
         
     fire_data, fuel_history = wildfire_simulation.run_simulation()
 
-    inputs = []
-    targets = []
+    inputs = fire_data[:-1]
+    targets = fire_data[1:]
 
-    for i in range(len(fire_data) - 1):
-        inputs.append((fire_data[i], fuel_history[i]/255))
-        targets.append((fire_data[i+1], fuel_history[i+1]/255))
+    #for i in range(len(fire_data) - 1):
+    #    inputs.append((fire_data[i], fuel_history[i]/255))
+    #    targets.append((fire_data[i+1], fuel_history[i+1]/255))
 
-    return np.array(inputs), np.array(targets), np(fuel_history)
+    return np.array(inputs), np.array(targets), fuel_history
 
 def process_cnn_outputs(ground_truth, model_output, fuel_map_prediction, fuel_map_history):
     
