@@ -99,7 +99,7 @@ if __name__ == "__main__":
         for scenario_idx in range(NUM_SCENARIOS):
 
             # Generate dataset
-            fire_inputs, fire_targets = create_fire_data(GRID_SIZE, NUM_SAMPLES, WIND_DIRECTION)
+            fire_inputs, fire_targets, _ = create_fire_data(GRID_SIZE, NUM_SAMPLES, WIND_DIRECTION)
             dataset = FirePropagationDataset(fire_inputs, fire_targets)
             dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
 
