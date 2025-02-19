@@ -2,42 +2,34 @@ import numpy as np
 
 import torch
 import torch.nn as nn
-from torch.utils.data import Dataset
+import torch.nn.functional as F 
 
-from fire_propagation_model.fire_propagation_model import WildfireSimulation
+from torch.utils.data import Dataset
 
 # CNN Model for Predicting Fire Spread
 class FirePropagationCNN(nn.Module):
     def __init__(self):
         super(FirePropagationCNN, self).__init__()
         
-        self.conv1 = nn.Conv2d(2, 64, kernel_size=3, padding=1)
-        self.bn1 = nn.BatchNorm2d(64)
-        
-        self.conv2 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
-        self.bn2 = nn.BatchNorm2d(128)
-        
-        self.conv3 = nn.Conv2d(128, 256, kernel_size=3, padding=1)
-        self.bn3 = nn.BatchNorm2d(256)
-        
-        self.conv4 = nn.Conv2d(256, 128, kernel_size=3, padding=1)
-        self.bn4 = nn.BatchNorm2d(128)
-        
-        self.conv5 = nn.Conv2d(128, 64, kernel_size=3, padding=1)
-        self.bn5 = nn.BatchNorm2d(64)
-        
-        self.conv6 = nn.Conv2d(64, 2, kernel_size=3, padding=1)
-        
-        self.dropout = nn.Dropout(0.3)  # Helps prevent overfitting
-        self.sigmoid = nn.Sigmoid()
-    
+        self.conv1 = nn.Conv2d(in_channels = 2, out_channels = 12, kernel_size = 5) 
+        # [4,12,220,220]
+        self.pool1 = nn.MaxPool2d(2,2) #reduces the images by a factor of 2
+        # [4,12,110,110]
+        self.conv2 = nn.Conv2d(in_channels = 12, out_channels = 24, kernel_size = 5)
+        # [4,24,106,106]
+        self.pool2 = nn.MaxPool2d(2,2)
+        # [4,24,53,53] which becomes the input of the fully connected layer 
+        self.fc1 = nn.Linear(in_features = (24 * 53 * 53), out_features = 120) 
+        self.fc2 = nn.Linear(in_features = 120, out_features = 84) 
+        self.fc3 = nn.Linear(in_features = 84, out_features = 2) #final layer, output will be the number of classes 
+
     def forward(self, x):
-        x = torch.relu(self.bn1(self.conv1(x)))
-        x = torch.relu(self.bn2(self.conv2(x)))
-        x = self.dropout(torch.relu(self.bn3(self.conv3(x))))
-        x = torch.relu(self.bn4(self.conv4(x)))
-        x = torch.relu(self.bn5(self.conv5(x)))
-        x = self.sigmoid(self.conv6(x))
+        x = self.pool1(F.relu(self.conv1(x)))  
+        x = self.pool2(F.relu(self.conv2(x)))  
+        x = x.view(-1, 24 * 53 * 53)            
+        x = F.relu(self.fc1(x))               
+        x = F.relu(self.fc2(x))              
+        x = self.fc3(x)                       
         return x
  
 # Dataset for training
