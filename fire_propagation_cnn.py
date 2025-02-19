@@ -10,26 +10,20 @@ from torch.utils.data import Dataset
 class FirePropagationCNN(nn.Module):
     def __init__(self):
         super(FirePropagationCNN, self).__init__()
-        self.encoder = nn.Sequential(
-            nn.Conv2d(2, 16, kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(16, 32, kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(32, 64, kernel_size=3, padding=1),
-            nn.ReLU()
-        )
-        self.decoder = nn.Sequential(
-            nn.Conv2d(64, 32, kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(32, 16, kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(16, 2, kernel_size=3, padding=1),
-            nn.Sigmoid()
-        )
+        
+        self.conv1 = nn.Conv2d(2, 32, kernel_size=3, padding=1)
+        self.bn1 = nn.BatchNorm2d(32)
+
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
+        self.bn2 = nn.BatchNorm2d(64)
+
+        self.conv3 = nn.Conv2d(64, 2, kernel_size=3, padding=1)
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
-        x = self.encoder(x)
-        x = self.decoder(x)
+        x = F.relu(self.bn1(self.conv1(x)))
+        x = F.relu(self.bn2(self.conv2(x)))
+        x = self.sigmoid(self.conv3(x))
         return x
  
 # Dataset for training
