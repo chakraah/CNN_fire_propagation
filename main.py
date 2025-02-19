@@ -26,6 +26,8 @@ def create_fire_data(grid_size, num_samples, wind_direction):
     inputs = fire_data[:-1]
     targets = fire_data[1:]
 
+    print(np.shape(fuel_history))
+
     #for i in range(len(fire_data) - 1):
     #    inputs.append((fire_data[i], fuel_history[i]/255))
     #    targets.append((fire_data[i+1], fuel_history[i+1]/255))
