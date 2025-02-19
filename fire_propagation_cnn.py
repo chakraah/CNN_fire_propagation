@@ -17,7 +17,7 @@ class FirePropagationCNN(nn.Module):
         self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
         self.bn2 = nn.BatchNorm2d(64)
 
-        self.conv3 = nn.Conv2d(64, 2, kernel_size=3, padding=1)
+        self.conv3 = nn.Conv2d(64, 1, kernel_size=3, padding=1)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):

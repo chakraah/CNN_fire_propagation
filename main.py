@@ -42,7 +42,7 @@ def process_cnn_outputs(ground_truth, model_output):
     
     # Extract outputs from the model
     fire_state_prediction = model_output[0]
-    fuel_map_prediction = model_output[1] * 255  # Scale fuel map to match output range
+    # fuel_map_prediction = model_output[1] * 255  # Scale fuel map to match output range
 
     # Threshold fire state prediction
     active_fire_pixels = np.sum(fire_state_label == 1)
@@ -53,9 +53,19 @@ def process_cnn_outputs(ground_truth, model_output):
         fire_state_prediction = np.where(fire_state_prediction >= threshold_value, 1, 0)
 
     # Threshold fuel map prediction
-    active_fuel_pixels = np.sum(fuel_map_label > 0)
-    threshold_value = np.sort(fuel_map_prediction.flatten())[-active_fuel_pixels]
-    fuel_map_prediction = np.where(fuel_map_prediction >= threshold_value, fuel_map_prediction, 0)
+    #active_fuel_pixels = np.sum(fuel_map_label > 0)
+    #threshold_value = np.sort(fuel_map_prediction.flatten())[-active_fuel_pixels]
+    # fuel_map_prediction = np.where(fuel_map_prediction >= threshold_value, fuel_map_prediction, 0)
+
+    fuel_map_prediction = np.array_like(fuel_map_label)
+
+    burning_cells = fire_state_prediction > 0
+    burned_out_cells = fuel_map_prediction < 5
+            
+    # Reduce fuel and update fire state
+    fuel_map_prediction[burning_cells] -= 5
+    #fire_state[burned_out_cells] = 0  # Fire extinguishes if fuel is depleted
+    fuel_map_prediction[burned_out_cells] = 0 
 
     return fire_state_label, fuel_map_label, fire_state_prediction, fuel_map_prediction
 
