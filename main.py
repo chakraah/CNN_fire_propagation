@@ -31,32 +31,6 @@ def create_fire_data(grid_size, num_samples, wind_direction):
 
     return inputs, targets, fuel_history
 
-def process_cnn_outputs(ground_truth, model_output):
-    
-    model_output = model_output[0].cpu().numpy()
-
-    # Extract labels from the ground truth
-    fire_state_label = ground_truth[0].cpu().numpy()
-    fuel_map_label = ground_truth[1].cpu().numpy() * 255  # Scale fuel map to match output range
-    
-    # Extract outputs from the model
-    fire_state_prediction = model_output[0]
-    fuel_map_prediction = model_output[1] * 255  # Scale fuel map to match output range
-
-    # Threshold fire state prediction
-    active_fire_pixels = np.sum(fire_state_label == 1)
-    if active_fire_pixels == 0:
-        fire_state_prediction = np.zeros_like(fire_state_prediction)
-    else:
-        threshold_value = np.sort(fire_state_prediction.flatten())[-active_fire_pixels]
-        fire_state_prediction = np.where(fire_state_prediction >= threshold_value, 1, 0)
-
-    # Threshold fuel map prediction
-    active_fuel_pixels = np.sum(fuel_map_label > 0)
-    threshold_value = np.sort(fuel_map_prediction.flatten())[-active_fuel_pixels]
-    fuel_map_prediction = np.where(fuel_map_prediction >= threshold_value, fuel_map_prediction, 0)
-
-    return fire_state_label, fuel_map_label, fire_state_prediction, fuel_map_prediction
 
 # Main Execution
 if __name__ == "__main__":
@@ -80,11 +54,11 @@ if __name__ == "__main__":
 
         # Training parameters
         BATCH_SIZE = 16
-        LEARNING_RATE = 0.001
+        LEARNING_RATE = 1e-4
         NUM_EPOCHS = 200
 
         # Initialize loss function, and optimizer
-        loss_function = nn.MSELoss()
+        loss_function = nn.CrossEntropyLoss()
         optimizer = optim.Adam(model.parameters(), LEARNING_RATE)
 
         for scenario_idx in range(NUM_SCENARIOS):
@@ -126,18 +100,29 @@ if __name__ == "__main__":
         with torch.no_grad():
             sample_output = model(sample_input)
 
-        # Process model outputs
-        fire_state_label, fuel_map_label, fire_state_pred, fuel_map_pred = process_cnn_outputs(sample_label, sample_output)
+        sample_output = sample_output[0].cpu().numpy()
+
+        # Extract labels from the ground truth
+        fire_state_label = sample_label[0].cpu().numpy()
+        fuel_map_label = sample_label[1].cpu().numpy() 
+        
+        # Extract outputs from the model
+        fire_state_prediction = sample_output[0]
+        fuel_map_prediction = sample_output[1]
+
+        fire_state_prediction = (fire_state_prediction >= 0.5).astype(int)
+        fuel_map_prediction = (fuel_map_prediction >= 0.5).astype(int)
+        fuel_map_prediction = fuel_map_prediction * 255
 
         # Store results
         fire_state_history_labels.append(fire_state_label)
         fuel_map_history_labels.append(fuel_map_label.astype(int))
-        fire_state_history_predictions.append(fire_state_pred)
-        fuel_map_history_predictions.append(fuel_map_pred.astype(int))
+        fire_state_history_predictions.append(fire_state_prediction)
+        fuel_map_history_predictions.append(fuel_map_prediction.astype(int))
 
         # Prepare next input and target
-        sample_input = torch.stack([torch.tensor(fire_state_pred), torch.tensor(fuel_map_pred / 255)]).unsqueeze(0).to(DEVICE)
-        _, sample_label = dataset[timestep] 
+        sample_input = torch.stack([torch.tensor(fire_state_prediction), torch.tensor(fuel_map_prediction / 255)]).unsqueeze(0).to(DEVICE)
+        _, sample_label = dataset[timestep+1] 
 
     # Visualize simulation results
     display_fire_spread(fire_state_history_labels, fuel_map_history_labels, fire_state_history_predictions, fuel_map_history_predictions)

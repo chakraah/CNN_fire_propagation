@@ -42,7 +42,7 @@ def display_fire_spread(fire_history_label, fuel_history_label, fire_history_out
 
         # Combine layers into an RGB image for difference simulation
         simulation_frame_diff = state_to_rgb(np.abs(fire_history_output[timestep]-fire_history_label[timestep]), 
-                                             np.zeros_like(fire_history_output[timestep]))
+                                             np.abs(fuel_history_output[timestep]-fuel_history_label[timestep]))
         im_diff.set_data(simulation_frame_diff.astype(np.uint8))
 
         plt.pause(0.01)
