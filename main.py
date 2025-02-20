@@ -127,7 +127,7 @@ if __name__ == "__main__":
             sample_output = model(sample_input)
 
         # Process model outputs
-        fire_state_label, fuel_map_label, fire_state_pred, fuel_map_pred = process_cnn_outputs(sample_label, sample_output, fuel_map_pred)
+        fire_state_label, fuel_map_label, fire_state_pred, fuel_map_pred = process_cnn_outputs(sample_label, sample_output)
 
         # Store results
         fire_state_history_labels.append(fire_state_label)

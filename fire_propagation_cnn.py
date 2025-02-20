@@ -11,20 +11,72 @@ class FirePropagationCNN(nn.Module):
     def __init__(self):
         super(FirePropagationCNN, self).__init__()
         
-        self.conv1 = nn.Conv2d(2, 32, kernel_size=3, padding=1)
-        self.bn1 = nn.BatchNorm2d(32)
-
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
-        self.bn2 = nn.BatchNorm2d(64)
-
-        self.conv3 = nn.Conv2d(64, 2, kernel_size=3, padding=1)
-        self.sigmoid = nn.Sigmoid()
-
+        # Encoder: Downsampling path
+        self.enc1 = self.contract_block(2, 32)  # Input channels: 2, Output channels: 32
+        self.enc2 = self.contract_block(32, 64) # Input channels: 32, Output channels: 64
+        self.enc3 = self.contract_block(64, 128) # Input channels: 64, Output channels: 128
+        
+        # Bottleneck
+        self.bottleneck = self.conv_block(128, 256) # Bottleneck layer, input channels: 128, output channels: 256
+        
+        # Decoder: Upsampling path
+        self.upconv3 = self.upconv_block(256, 128) # Upsample to match encoder output (128 channels)
+        self.upconv2 = self.upconv_block(128, 64)  # Upsample to match encoder output (64 channels)
+        self.upconv1 = self.upconv_block(64, 32)   # Upsample to match encoder output (32 channels)
+        
+        # Final convolution layer (output layer)
+        self.final_conv = nn.Conv2d(32, 2, kernel_size=1)  # Output channels: 2 (fire spread prediction)
+        
+    def contract_block(self, in_channels, out_channels):
+        """Helper function for convolution followed by max-pooling"""
+        block = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2)
+        )
+        return block
+    
+    def upconv_block(self, in_channels, out_channels):
+        """Helper function for transposed convolution (upsampling)"""
+        block = nn.Sequential(
+            nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2),
+            nn.ReLU(inplace=True)
+        )
+        return block
+    
+    def conv_block(self, in_channels, out_channels):
+        """Helper function for two convolution layers"""
+        block = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True)
+        )
+        return block
+    
     def forward(self, x):
-        x = F.relu(self.bn1(self.conv1(x)))
-        x = F.relu(self.bn2(self.conv2(x)))
-        x = self.sigmoid(self.conv3(x))
-        return x
+        # Encoder
+        enc1 = self.enc1(x)   # (Batch, 32, H/2, W/2)
+        enc2 = self.enc2(enc1) # (Batch, 64, H/4, W/4)
+        enc3 = self.enc3(enc2) # (Batch, 128, H/8, W/8)
+        
+        # Bottleneck
+        bottleneck = self.bottleneck(enc3)  # (Batch, 256, H/16, W/16)
+        
+        # Decoder
+        upconv3 = self.upconv3(bottleneck)  # (Batch, 128, H/8, W/8)
+        upconv3 = torch.cat([upconv3, enc3], dim=1)  # Skip connection
+        upconv2 = self.upconv2(upconv3)  # (Batch, 64, H/4, W/4)
+        upconv2 = torch.cat([upconv2, enc2], dim=1)  # Skip connection
+        upconv1 = self.upconv1(upconv2)  # (Batch, 32, H/2, W/2)
+        upconv1 = torch.cat([upconv1, enc1], dim=1)  # Skip connection
+        
+        # Final convolution layer
+        out = self.final_conv(upconv1)  # (Batch, 2, H, W)
+        
+        return out
  
 # Dataset for training
 class FirePropagationDataset(Dataset):
