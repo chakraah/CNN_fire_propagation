@@ -23,8 +23,8 @@ class FirePropagationCNN(nn.Module):
         self.conv4 = nn.Conv2d(128, 256, kernel_size=3, padding=1)
         self.bn4 = nn.BatchNorm2d(256)
 
-        self.conv5 = nn.Conv2d(256, 512, kernel_size=3, padding=1)
-        self.bn5 = nn.BatchNorm2d(512)
+        self.conv5 = nn.Conv2d(256, 2, kernel_size=3, padding=1)
+        self.bn5 = nn.Sigmoid()
 
     def forward(self, x):
         x = F.relu(self.bn1(self.conv1(x)))
