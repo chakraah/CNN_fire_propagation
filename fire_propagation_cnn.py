@@ -11,7 +11,7 @@ class FirePropagationCNN(nn.Module):
     def __init__(self):
         super(FirePropagationCNN, self).__init__()
         
-        # Encoder: Downsampling path
+# Encoder: Downsampling path
         self.enc1 = self.contract_block(2, 32)
         self.enc2 = self.contract_block(32, 64)
         self.enc3 = self.contract_block(64, 128)
@@ -20,12 +20,12 @@ class FirePropagationCNN(nn.Module):
         self.bottleneck = self.conv_block(128, 256)
 
         # Decoder: Upsampling path
-        self.upconv3 = self.upconv_block(256, 128)
-        self.upconv2 = self.upconv_block(128, 64)
-        self.upconv1 = self.upconv_block(64, 32)
+        self.upconv3 = self.upconv_block(256, 128)  # After bottleneck, 256 channels
+        self.upconv2 = self.upconv_block(128 + 128, 64)  # Input 128 from upconv3 + 128 from enc3
+        self.upconv1 = self.upconv_block(64 + 64, 32)  # Input 64 from upconv2 + 64 from enc2
 
         # Final convolution layer
-        self.final_conv = nn.Conv2d(32, 2, kernel_size=1)
+        self.final_conv = nn.Conv2d(32 + 32, 2, kernel_size=1)  # Input 32 from upconv1 + 32 from enc1
 
     def contract_block(self, in_channels, out_channels):
         block = nn.Sequential(
