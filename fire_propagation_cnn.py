@@ -20,14 +20,26 @@ class FirePropagationCNN(nn.Module):
         self.conv3 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
         self.bn3 = nn.BatchNorm2d(128)
 
-        self.conv4 = nn.Conv2d(128, 2, kernel_size=3, padding=1)
+        self.conv4 = nn.Conv2d(128, 256, kernel_size=3, padding=1)
+        self.bn4 = nn.BatchNorm2d(256)
+
+        self.conv5 = nn.Conv2d(256, 512, kernel_size=3, padding=1)
+        self.bn5 = nn.BatchNorm2d(512)
+
+        self.conv6 = nn.Conv2d(512, 1024, kernel_size=3, padding=1)
+        self.bn6 = nn.BatchNorm2d(1024)
+
+        self.conv7 = nn.Conv2d(1024, 2, kernel_size=3, padding=1)
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
         x = F.relu(self.bn1(self.conv1(x)))
         x = F.relu(self.bn2(self.conv2(x)))
         x = F.relu(self.bn3(self.conv3(x)))
-        x = self.sigmoid(self.conv4(x))
+        x = F.relu(self.bn3(self.conv4(x)))
+        x = F.relu(self.bn3(self.conv5(x)))
+        x = F.relu(self.bn3(self.conv6(x)))
+        x = self.sigmoid(self.conv7(x))
         return x
  
 # Dataset for training
