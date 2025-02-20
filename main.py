@@ -58,7 +58,7 @@ if __name__ == "__main__":
         NUM_EPOCHS = 200
 
         # Initialize loss function, and optimizer
-        loss_function = nn.CrossEntropyLoss()
+        loss_function = nn.BCELoss()
         optimizer = optim.Adam(model.parameters(), LEARNING_RATE)
 
         for scenario_idx in range(NUM_SCENARIOS):
@@ -97,6 +97,9 @@ if __name__ == "__main__":
 
         model.eval()
 
+        sample_input, sample_label = dataset[timestep] 
+        sample_input = sample_input.unsqueeze(0).to(DEVICE)
+
         with torch.no_grad():
             sample_output = model(sample_input)
 
@@ -104,16 +107,16 @@ if __name__ == "__main__":
 
         # Extract labels from the ground truth
         fire_state_label = sample_label[0].cpu().numpy()
-        fuel_map_label = sample_label[1].cpu().numpy() 
+        fuel_map_label = sample_label[1].cpu().numpy() * 255
         
         # Extract outputs from the model
         fire_state_prediction = sample_output[0]
         fuel_map_prediction = sample_output[1]
 
         fire_state_prediction = (fire_state_prediction >= 0.5).astype(int)
-        fuel_map_prediction = (fuel_map_prediction >= 0.5).astype(int)
         fuel_map_prediction = fuel_map_prediction * 255
 
+        print(fuel_map_prediction)
         # Store results
         fire_state_history_labels.append(fire_state_label)
         fuel_map_history_labels.append(fuel_map_label.astype(int))
@@ -121,8 +124,8 @@ if __name__ == "__main__":
         fuel_map_history_predictions.append(fuel_map_prediction.astype(int))
 
         # Prepare next input and target
-        sample_input = torch.stack([torch.tensor(fire_state_prediction), torch.tensor(fuel_map_prediction / 255)]).unsqueeze(0).to(DEVICE)
-        _, sample_label = dataset[timestep+1] 
+        #sample_input = torch.stack([torch.tensor(fire_state_prediction), torch.tensor(fuel_map_prediction / 255)]).unsqueeze(0).to(DEVICE)
+        #_, sample_label = dataset[timestep+1] 
 
     # Visualize simulation results
     display_fire_spread(fire_state_history_labels, fuel_map_history_labels, fire_state_history_predictions, fuel_map_history_predictions)
