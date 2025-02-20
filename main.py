@@ -93,12 +93,9 @@ if __name__ == "__main__":
     sample_input, sample_label = dataset[0] 
     sample_input = sample_input.unsqueeze(0).to(DEVICE)
 
-    for timestep in range(NUM_SAMPLES - 1):
+    for timestep in range(NUM_SAMPLES - 2):
 
         model.eval()
-
-        sample_input, sample_label = dataset[timestep] 
-        sample_input = sample_input.unsqueeze(0).to(DEVICE)
 
         with torch.no_grad():
             sample_output = model(sample_input)
@@ -111,12 +108,28 @@ if __name__ == "__main__":
         
         # Extract outputs from the model
         fire_state_prediction = sample_output[0]
-        fuel_map_prediction = sample_output[1]
+        fuel_map_prediction = sample_output[1] * 255
 
-        fire_state_prediction = (fire_state_prediction >= 0.5).astype(int)
-        fuel_map_prediction = fuel_map_prediction * 255
+        # Count the number of ones in the fire_state_label array
+        num_ones = np.sum(fire_state_label == 1)
 
-        print(fuel_map_prediction)
+        if num_ones > 0:
+
+            # Flatten the fire_state_prediction and sort the values
+            flattened_predictions = fire_state_prediction.flatten()
+
+            # Sort the predictions to determine which values should be set to 1
+            top_indices = np.sort(flattened_predictions)[-num_ones:]  # Exclude last 'num_ones' smallest values
+
+            # Find the minimum value in the top indices to create a threshold
+            threshold = np.min(top_indices)
+
+            # Update the prediction array based on the threshold
+            fire_state_prediction[fire_state_prediction >= threshold] = 1
+            fire_state_prediction[fire_state_prediction < threshold] = 0
+        else:
+            fire_state_prediction[fire_state_prediction < 0.1] = 0
+
         # Store results
         fire_state_history_labels.append(fire_state_label)
         fuel_map_history_labels.append(fuel_map_label.astype(int))
@@ -124,8 +137,8 @@ if __name__ == "__main__":
         fuel_map_history_predictions.append(fuel_map_prediction.astype(int))
 
         # Prepare next input and target
-        #sample_input = torch.stack([torch.tensor(fire_state_prediction), torch.tensor(fuel_map_prediction / 255)]).unsqueeze(0).to(DEVICE)
-        #_, sample_label = dataset[timestep+1] 
+        sample_input = torch.stack([torch.tensor(fire_state_prediction), torch.tensor(fuel_map_prediction / 255)]).unsqueeze(0).to(DEVICE)
+        _, sample_label = dataset[timestep+1] 
 
     # Visualize simulation results
     display_fire_spread(fire_state_history_labels, fuel_map_history_labels, fire_state_history_predictions, fuel_map_history_predictions)
