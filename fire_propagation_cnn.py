@@ -78,6 +78,9 @@ class FirePropagationCNN(nn.Module):
         # Final convolution layer
         out = self.final_conv(upconv1)  # (Batch, 2, H, W)
 
+        # Resize the output to match the target size (e.g., 200x200)
+        out = F.interpolate(out, size=(200, 200), mode='bilinear', align_corners=False)
+
         return out
  
 # Dataset for training
