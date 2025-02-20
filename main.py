@@ -23,7 +23,7 @@ def create_fire_data(grid_size, num_samples, wind_direction):
         
     fire_data, fuel_history = wildfire_simulation.run_simulation()
 
-    inputs = [], targets = []
+    inputs, targets = [], []
 
     for i in range(len(fire_data) - 1):
         inputs.append((fire_data[i], fuel_history[i]/255))
