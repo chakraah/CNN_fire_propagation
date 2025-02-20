@@ -56,13 +56,6 @@ def process_cnn_outputs(ground_truth, model_output):
     threshold_value = np.sort(fuel_map_prediction.flatten())[-active_fuel_pixels]
     fuel_map_prediction = np.where(fuel_map_prediction >= threshold_value, fuel_map_prediction, 0)
 
-    burning_cells = fire_state_prediction > 0
-    burned_out_cells = fuel_map_prediction < 5
-            
-    # Reduce fuel and update fire state
-    fuel_map_prediction[burning_cells] -= 5
-    fuel_map_prediction[burned_out_cells] = 0 
-
     return fire_state_label, fuel_map_label, fire_state_prediction, fuel_map_prediction
 
 # Main Execution
@@ -126,9 +119,6 @@ if __name__ == "__main__":
     sample_input, sample_label = dataset[0] 
     sample_input = sample_input.unsqueeze(0).to(DEVICE)
 
-    #fuel_map0 = sample_input[0,1].cpu().numpy() * 255
-    fuel_map0 = fuel_history[0]
-
     for timestep in range(NUM_SAMPLES - 1):
 
         model.eval()
@@ -136,11 +126,8 @@ if __name__ == "__main__":
         with torch.no_grad():
             sample_output = model(sample_input)
 
-        if timestep == 0:
-            fuel_map_pred = fuel_map0
-
         # Process model outputs
-        fire_state_label, fuel_map_label, fire_state_pred, fuel_map_pred = process_cnn_outputs(sample_label, sample_output, fuel_map_pred, fuel_history[i])
+        fire_state_label, fuel_map_label, fire_state_pred, fuel_map_pred = process_cnn_outputs(sample_label, sample_output, fuel_map_pred)
 
         # Store results
         fire_state_history_labels.append(fire_state_label)
