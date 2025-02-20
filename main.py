@@ -23,31 +23,25 @@ def create_fire_data(grid_size, num_samples, wind_direction):
         
     fire_data, fuel_history = wildfire_simulation.run_simulation()
 
-    #inputs = fire_data[:-1]
-    #targets = fire_data[1:]
-    inputs = []
-    targets =[]
+    inputs = [], targets = []
 
     for i in range(len(fire_data) - 1):
-        #inputs.append((fire_data[i], fuel_history[i]/255))
-        #targets.append((fire_data[i+1], fuel_history[i+1]/255))
-        inputs.append([fire_data[i]])
-        targets.append([fire_data[i+1]])
+        inputs.append((fire_data[i], fuel_history[i]/255))
+        targets.append((fire_data[i+1], fuel_history[i+1]/255))
 
     return inputs, targets, fuel_history
 
-def process_cnn_outputs(ground_truth, model_output, fuel_map_prediction, fuel_map_history):
+def process_cnn_outputs(ground_truth, model_output):
     
     model_output = model_output[0].cpu().numpy()
 
     # Extract labels from the ground truth
     fire_state_label = ground_truth[0].cpu().numpy()
-    #fuel_map_label = ground_truth[1].cpu().numpy() * 255  # Scale fuel map to match output range
-    fuel_map_label = fuel_map_history
+    fuel_map_label = ground_truth[1].cpu().numpy() * 255  # Scale fuel map to match output range
     
     # Extract outputs from the model
     fire_state_prediction = model_output[0]
-    # fuel_map_prediction = model_output[1] * 255  # Scale fuel map to match output range
+    fuel_map_prediction = model_output[1] * 255  # Scale fuel map to match output range
 
     # Threshold fire state prediction
     active_fire_pixels = np.sum(fire_state_label == 1)
@@ -58,9 +52,9 @@ def process_cnn_outputs(ground_truth, model_output, fuel_map_prediction, fuel_ma
         fire_state_prediction = np.where(fire_state_prediction >= threshold_value, 1, 0)
 
     # Threshold fuel map prediction
-    #active_fuel_pixels = np.sum(fuel_map_label > 0)
-    #threshold_value = np.sort(fuel_map_prediction.flatten())[-active_fuel_pixels]
-    # fuel_map_prediction = np.where(fuel_map_prediction >= threshold_value, fuel_map_prediction, 0)
+    active_fuel_pixels = np.sum(fuel_map_label > 0)
+    threshold_value = np.sort(fuel_map_prediction.flatten())[-active_fuel_pixels]
+    fuel_map_prediction = np.where(fuel_map_prediction >= threshold_value, fuel_map_prediction, 0)
 
     burning_cells = fire_state_prediction > 0
     burned_out_cells = fuel_map_prediction < 5
