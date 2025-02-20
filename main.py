@@ -23,16 +23,18 @@ def create_fire_data(grid_size, num_samples, wind_direction):
         
     fire_data, fuel_history = wildfire_simulation.run_simulation()
 
-    inputs = fire_data[:-1]
-    targets = fire_data[1:]
+    #inputs = fire_data[:-1]
+    #targets = fire_data[1:]
+    inputs = []
+    targets =[]
 
-    print(np.shape(fuel_history))
+    for i in range(len(fire_data) - 1):
+        #inputs.append((fire_data[i], fuel_history[i]/255))
+        #targets.append((fire_data[i+1], fuel_history[i+1]/255))
+        inputs.append([fire_data[i]])
+        targets.append([fire_data[i+1]])
 
-    #for i in range(len(fire_data) - 1):
-    #    inputs.append((fire_data[i], fuel_history[i]/255))
-    #    targets.append((fire_data[i+1], fuel_history[i+1]/255))
-
-    return np.array(inputs), np.array(targets), fuel_history
+    return inputs, targets, fuel_history
 
 def process_cnn_outputs(ground_truth, model_output, fuel_map_prediction, fuel_map_history):
     
@@ -101,7 +103,7 @@ if __name__ == "__main__":
         for scenario_idx in range(NUM_SCENARIOS):
 
             # Generate dataset
-            fire_inputs, fire_targets, _ = create_fire_data(GRID_SIZE, NUM_SAMPLES, WIND_DIRECTION)
+            fire_inputs, fire_targets, x = create_fire_data(GRID_SIZE, NUM_SAMPLES, WIND_DIRECTION)
             dataset = FirePropagationDataset(fire_inputs, fire_targets)
             dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
 

@@ -60,6 +60,7 @@ class ModelTrainer:
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
 
                 # Forward pass
+                
                 outputs = self.model(inputs)
                 loss = self.criterion(outputs, labels)
 
