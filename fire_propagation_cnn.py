@@ -11,53 +11,24 @@ class FirePropagationCNN(nn.Module):
     def __init__(self):
         super(FirePropagationCNN, self).__init__()
         
-        # Encoding path (downsampling)
-        self.enc1 = self.conv_block(2, 64)
-        self.enc2 = self.conv_block(64, 128)
-        self.enc3 = self.conv_block(128, 256)
-        self.enc4 = self.conv_block(256, 512)
-        self.enc5 = self.conv_block(512, 1024)
+        self.conv1 = nn.Conv2d(2, 32, kernel_size=3, padding=1)
+        self.bn1 = nn.BatchNorm2d(32)
 
-        # Decoding path (upsampling)
-        self.upconv5 = self.upconv_block(1024, 512)
-        self.upconv4 = self.upconv_block(512, 256)
-        self.upconv3 = self.upconv_block(256, 128)
-        self.upconv2 = self.upconv_block(128, 64)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
+        self.bn2 = nn.BatchNorm2d(64)
 
-        # Final layer
-        self.final = nn.Conv2d(64, 2, kernel_size=1)
+        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
+        self.bn3 = nn.BatchNorm2d(128)
 
-    def conv_block(self, in_channels, out_channels):
-        return nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
-            nn.ReLU(inplace=True)
-        )
-
-    def upconv_block(self, in_channels, out_channels):
-        return nn.Sequential(
-            nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2),
-            nn.ReLU(inplace=True)
-        )
+        self.conv4 = nn.Conv2d(128, 2, kernel_size=3, padding=1)
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
-        # Encoding path
-        enc1 = self.enc1(x)
-        enc2 = self.enc2(enc1)
-        enc3 = self.enc3(enc2)
-        enc4 = self.enc4(enc3)
-        enc5 = self.enc5(enc4)
-
-        # Decoding path with skip connections
-        upconv5 = self.upconv5(enc5)
-        upconv4 = self.upconv4(upconv5 + enc4)  # Skip connection
-        upconv3 = self.upconv3(upconv4 + enc3)  # Skip connection
-        upconv2 = self.upconv2(upconv3 + enc2)  # Skip connection
-
-        # Final output
-        out = self.final(upconv2 + enc1)  # Skip connection
-        return out
+        x = F.relu(self.bn1(self.conv1(x)))
+        x = F.relu(self.bn2(self.conv2(x)))
+        x = F.relu(self.bn3(self.conv3(x)))
+        x = self.sigmoid(self.conv4(x))
+        return x
  
 # Dataset for training
 class FirePropagationDataset(Dataset):

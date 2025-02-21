@@ -18,7 +18,6 @@ from display import display_fire_spread
 def create_fire_data(grid_size, num_samples, wind_direction):
     # Generates fire propagation data for training/testing
     ignition_point = [(np.random.randint(1,grid_size-1), np.random.randint(1,grid_size-1))]
-    ignition_point = [(100,100)]
     wildfire_simulation = WildfireSimulation(grid_size, 0.9, num_samples, 5, 0.2, ignition_point, wind_direction)
         
     fire_data, fuel_history = wildfire_simulation.run_simulation()
@@ -39,7 +38,7 @@ if __name__ == "__main__":
     GRID_SIZE = 200
     WIND_DIRECTION = 0  # Wind blowing towards the right
     NUM_SAMPLES = 150
-    NUM_SCENARIOS = 1
+    NUM_SCENARIOS = 20
 
     # Define model path
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -47,7 +46,7 @@ if __name__ == "__main__":
 
     # Initialize model
     model = FirePropagationCNN()
-    DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(DEVICE)
 
     if not os.path.exists(model_path):
