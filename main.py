@@ -58,7 +58,7 @@ if __name__ == "__main__":
         NUM_EPOCHS = 200
 
         # Initialize loss function, and optimizer
-        loss_function = nn.BCEWithLogitsLoss()
+        loss_function = nn.BCELoss()
         optimizer = optim.Adam(model.parameters(), LEARNING_RATE)
 
         for scenario_idx in range(NUM_SCENARIOS):
