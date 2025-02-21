@@ -53,87 +53,34 @@ class ModelTrainer:
         self.device = device
     
     def train(self):
-        self.model.train()  # Set model to training mode
-        all_losses = []  # Store loss values for monitoring
+        # Trains the CNN model
+        self.model.to(self.device)
+
+        loss_function = nn.BCEWithLogitsLoss()
 
         for epoch in range(self.num_epochs):
-            running_loss = 0.0
-            for i, (inputs, targets) in enumerate(self.dataloader):
+            self.model.train()
+            total_loss = 0.0
+            for inputs, labels in self.dataloader:
                 # Move data to device
-                inputs = inputs.to(self.device)
-                targets = targets.to(self.device)
-
-                # Zero the parameter gradients
-                self.optimizer.zero_grad()
+                inputs, labels = inputs.to(self.device), labels.to(self.device)
 
                 # Forward pass
                 outputs = self.model(inputs)
 
                 # Compute loss
                 fire_outputs, fuel_outputs = outputs[:, 0], outputs[:, 1]  # Assuming the first channel is fire, second is fuel
-                fire_targets, fuel_targets = targets[:, 0], targets[:, 1]
+                fire_targets, fuel_targets = labels[:, 0], labels[:, 1]
                 
-                fire_loss = self.loss_function(fire_outputs, fire_targets)
-                fuel_loss = self.loss_function(fuel_outputs, fuel_targets)
+                fire_loss = self.criterion(fire_outputs, fire_targets)
+                fuel_loss = loss_function(fuel_outputs, fuel_targets)
                 loss = fire_loss + fuel_loss
-
+                
                 # Backward pass and optimization
+                self.optimizer.zero_grad()
                 loss.backward()
                 self.optimizer.step()
 
-                # Log running loss
-                running_loss += loss.item()
-
-                # Optionally, print loss every 100 batches
-                if i % 100 == 99:  # Print every 100 batches
-                    print(f"Epoch [{epoch + 1}/{self.num_epochs}], Step [{i + 1}/{len(self.dataloader)}], Loss: {running_loss / 100:.4f}")
-                    running_loss = 0.0
-
-            # After each epoch, store the average loss
-            avg_loss = running_loss / len(self.dataloader)
-            all_losses.append(avg_loss)
-
-            # Visualize the intermediate predictions after a few epochs
-            if epoch % 10 == 0:  # Visualize every 10 epochs (adjust as needed)
-                self.visualize_predictions(inputs, fire_targets, fuel_targets, epoch)
-
-        # Plot loss graph after training is complete
-        self.plot_loss_curve(all_losses)
-
-    def visualize_predictions(self, inputs, fire_targets, fuel_targets, epoch):
-        # Select a few images from the batch
-        sample_input = inputs[0].cpu().detach().numpy()
-        sample_fire_target = fire_targets[0].cpu().detach().numpy()
-        sample_fuel_target = fuel_targets[0].cpu().detach().numpy()
-
-        # Model prediction
-        with torch.no_grad():
-            self.model.eval()
-            outputs = self.model(inputs.unsqueeze(0).to(self.device))
-            fire_pred = outputs[0, 0].cpu().detach().numpy()
-            fuel_pred = outputs[0, 1].cpu().detach().numpy()
-
-        # Plot the ground truth and predicted outputs
-        fig, axes = plt.subplots(1, 4, figsize=(15, 5))
-
-        axes[0].imshow(sample_fire_target, cmap='hot')
-        axes[0].set_title('Fire Ground Truth')
-
-        axes[1].imshow(sample_fuel_target, cmap='Greens')
-        axes[1].set_title('Fuel Ground Truth')
-
-        axes[2].imshow(fire_pred, cmap='hot')
-        axes[2].set_title(f'Fire Prediction (Epoch {epoch})')
-
-        axes[3].imshow(fuel_pred, cmap='Greens')
-        axes[3].set_title(f'Fuel Prediction (Epoch {epoch})')
-
-        plt.show()
-
-    def plot_loss_curve(self, loss_values):
-        # Plot the loss curve after training
-        plt.plot(range(1, len(loss_values) + 1), loss_values)
-        plt.xlabel('Epoch')
-        plt.ylabel('Loss')
-        plt.title('Training Loss Curve')
-        plt.show()
+                total_loss += loss.item()
+            
+            print(f"Epoch {epoch+1}/{self.num_epochs} - Loss: {total_loss / len(self.dataloader):.4f}")
