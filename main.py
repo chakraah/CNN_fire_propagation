@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
     # Initialize model
     model = FirePropagationCNN()
-    DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    DEVICE = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
     model.to(DEVICE)
 
     if not os.path.exists(model_path):
